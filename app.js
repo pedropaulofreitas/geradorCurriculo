@@ -4,11 +4,40 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var passport = require('passport');
+var FacebookStrategy = require('passport-facebook').Strategy;
+var config = require('./config/fbauth');
+var session = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+
+// Passport session setup.
+passport.serializeUser(function(user, done)
+{
+    done(null, user);
+});
+passport.deserializeUser(function(obj, done)
+{
+    done(null, obj);
+});
+
+passport.use(new FacebookStrategy(
+{
+    clientID: config.AppID,
+    clientSecret:config.AppSecret,
+    callbackURL: config.callbackURL
+ },function(accessToken, refreshToken, profile, done)
+    {
+        process.nextTick(function () {
+            //Check whether the User exists or not using profile.id
+            //Further DB code.
+            return done(null, profile);
+    });
+    }
+));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));//diz onde ta o diretorio publico e cria um "link" pra raiz
@@ -20,6 +49,9 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(session({ secret: 'keyboard cat', key: 'sid'}));
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));//diz onde ta o diretorio publico e cria um "link" pra raiz
 
 app.use('/', routes); //index route
