@@ -4,12 +4,14 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
-    res.render('index', { title: 'Gerador de Curriculo' });
+    res.render('index', { title: 'Gerador de Curriculo', user: req.user });
 });
 
-router.get('/helloworld', function(req, res) {
-    res.render('helloworld', { title: 'Hello, World!' });
-});
+router.get('/helloworld', ensureAuthenticated
+    , function(req, res)
+    {
+        res.render('helloworld', {title: 'Helloworld'});
+    });
 
 router.get('/account', ensureAuthenticated, function(req, res){
   res.render('account', { user: req.user });
@@ -35,7 +37,8 @@ router.get('/logout'
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login')
+  res.redirect('/')
 }
+
 
 module.exports = router;
